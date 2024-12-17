@@ -3807,6 +3807,9 @@ void menus()
 	} while (true);
 }
 
+
+
+
 int main()
 {
 	outputFile.open("customer.txt", ios::app);
