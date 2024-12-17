@@ -3802,5 +3802,5 @@ int main()
 	menus();
 	writeSellersToFile();
 	writeCustomersToFile();
-	
+	return 0;
 }
