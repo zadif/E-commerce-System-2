@@ -6,12 +6,12 @@
 #include <chrono>
 //#include"utils/ConsoleUtility.h"
 #include"termcolor.hpp"
-
+#include"tabulate.hpp"
 #include <cstdlib>
 using namespace std;
 using namespace chrono;
 using namespace termcolor;
-
+using namespace tabulate;
 
 int loggedInSellerId = 0;
 int loggedInCustomerId = 0;
@@ -111,7 +111,7 @@ public:
 
 template <typename T>
 class Queue {
-private:
+public:
 	struct Node {
 		T data;
 		Node* next;
@@ -123,7 +123,7 @@ private:
 public:
 	Queue() : front(nullptr), rear(nullptr) {}
 
-	void enqueue(const T& data) {
+	void push(const T& data) {
 		Node* newNode = new Node(data);
 		if (rear == nullptr) {
 			front = rear = newNode;
@@ -133,7 +133,7 @@ public:
 		rear = newNode;
 	}
 
-	void dequeue() {
+	void pop() {
 		if (front == nullptr) {
 			cout << "Queue is empty\n";
 			return;
@@ -153,7 +153,7 @@ public:
 		return front->data;
 	}
 
-	bool isEmpty() const {
+	bool empty() const {
 		return front == nullptr;
 	}
 
@@ -168,7 +168,7 @@ public:
 
 	~Queue() {
 		while (front != nullptr) {
-			dequeue();
+			pop();
 		}
 	}
 	
@@ -375,24 +375,30 @@ public:
 	}*/
 	void inorder()
 	{
-		inorderRec(root);
+		Table table;
+		table.add_row({"Product Name", "Product Price", "Quantity"});
+		inorderRec(root , table);
+		
+  for(size_t i = 0; i < 3; ++i) {
+	table[0][i].format()
+	  .font_color(Color::green)
+	  .font_align(FontAlign::center)
+	  .font_style({FontStyle::bold});
+  }
+  std::cout << table << std::endl;
 	}
-	void inorderRec(ProductNode* root)
+	void inorderRec(ProductNode* root , Table table)
 	{
 		if (root != NULL)
 		{
-			inorderRec(root->left);
-
+			inorderRec(root->left , table);
 			// make table
-
-
-
-
-
-			cout << root->productName << " " << root->productPrice << " " << root->quantity << endl;
-			inorderRec(root->right);
+			table.add_row({root->productName , to_string(root->productPrice) , to_string(root->quantity)});
+			
+			inorderRec(root->right , table);
 		}
 	}
+	
 	void levelorder()
 	{
 		levelorderRec(root);
@@ -999,11 +1005,11 @@ public:
 		cout << "\nNotifications:\n\n"; //show seller if a particular product is over
 		if (root)
 		{
-			queue<ProductCategoryNode*> q;
+			Queue<ProductCategoryNode*> q;
 			q.push(root);
 			while (!q.empty())
 			{
-				ProductCategoryNode* n = q.front();
+				ProductCategoryNode* n = q.peek();
 				q.pop();
 				n->getProdutTree().countProducts();
 
@@ -1020,50 +1026,13 @@ public:
 
 
 string cit[8] = { "Lahore","Faisalabad","Multan","Karachi","Islamabad","Okara","Murree","Kashmir" };
-int getCityIndex(string source) {
+int getindex(string source) {
 	for (int i = 0; i < 8; i++) {
 		if (cit[i] == source) {
 			return i;
 		}
 	}
 }
-// Helper function to print the path recursively
-void printPath(int parent[], int cityIndex) {
-	if (parent[cityIndex] == -1) {
-		cout << cit[cityIndex];
-		return;
-	}
-	printPath(parent, parent[cityIndex]);
-	cout << " -> " << cit[cityIndex];
-}
-void printPath2(int parent[], int cityIndex, string& path) {
-	if (parent[cityIndex] == -1) {
-		path += cit[cityIndex];
-		return;
-	}
-	printPath2(parent, parent[cityIndex], path);
-	path += " -> " + cit[cityIndex];
-}
-
-string setCityName() {
-	cout << "\nFollowing are cities\nSelect a city\nEnter the number of city\n\n";
-	for (int i = 0; i < 8; i++) {
-		cout << i + 1 <<"->  "<< cit[i] << endl;
-	}
-	cout << "\nEnter number of city: ";
-	int num;
-	cin >> num;
-	if (num > 0 && num < 9) {
-		return cit[num - 1];
-	}
-	else {
-		cout << "\nWrong number entered";
-		cout << "\nRedirecting\n\n ";
-		system("pause");
-		return setCityName();
-	}
-}
-
 class CityNode {
 public:
 
@@ -1085,7 +1054,7 @@ public:
 	City() :name(""), index(i++), head(nullptr) {}
 
 	void addCity(string cityName, int weight) {
-		CityNode* newCity = new CityNode(getCityIndex(cityName), weight);
+		CityNode* newCity = new CityNode(getindex(cityName), weight);
 		if (head == nullptr) {
 			head = newCity;
 		}
@@ -1182,80 +1151,47 @@ public:
 		}
 	}
 	void initiateWeights() {
-
-		// Lahore (cit[0]) connections
-		city[0].addCity("Faisalabad", 180);
-		city[0].addCity("Multan", 340);
-		city[0].addCity("Karachi", 1200);
+		// Lahore connections
+		city[0].addCity("Faisalabad", 128);
+		city[0].addCity("Multan", 232);
+		city[0].addCity("Karachi", 350);
 		city[0].addCity("Islamabad", 290);
-		city[0].addCity("Okara", 110);
-		city[0].addCity("Murree", 370);
-		city[0].addCity("Kashmir", 520);
-
-		// Faisalabad (cit[1]) connections
-		city[1].addCity("Lahore", 180);
+		// Faisalabad connections
+		city[1].addCity("Lahore", 128);
+		city[1].addCity("Islamabad", 185);
 		city[1].addCity("Multan", 200);
-		city[1].addCity("Karachi", 1100);
-		city[1].addCity("Islamabad", 330);
-		city[1].addCity("Okara", 90);
-		city[1].addCity("Murree", 390);
-		city[1].addCity("Kashmir", 510);
-
-		// Multan (cit[2]) connections
-		city[2].addCity("Lahore", 340);
+		city[1].addCity("Okara", 160);
+		// Multan connections
+		city[2].addCity("Karachi", 756);
+		city[2].addCity("Okara", 146);
 		city[2].addCity("Faisalabad", 200);
-		city[2].addCity("Karachi", 950);
-		city[2].addCity("Islamabad", 540);
-		city[2].addCity("Okara", 150);
-		city[2].addCity("Murree", 570);
-		city[2].addCity("Kashmir", 690);
-
-		// Karachi (cit[3]) connections
-		city[3].addCity("Lahore", 1200);
-		city[3].addCity("Faisalabad", 1100);
-		city[3].addCity("Multan", 950);
-		city[3].addCity("Islamabad", 1370);
-		city[3].addCity("Okara", 1250);
-		city[3].addCity("Murree", 1500);
-		city[3].addCity("Kashmir", 1600);
-
-		// Islamabad (cit[4]) connections
+		city[2].addCity("Murree", 400);
+		// Karachi connections 
+		city[3].addCity("Multan", 756);
+		city[3].addCity("Murree", 367);
+		city[3].addCity("Lahore", 350);
+		city[3].addCity("Kashmir", 800);
+		// Islamabad connections 
 		city[4].addCity("Lahore", 290);
-		city[4].addCity("Faisalabad", 330);
-		city[4].addCity("Multan", 540);
-		city[4].addCity("Karachi", 1370);
-		city[4].addCity("Okara", 400);
-		city[4].addCity("Murree", 70);
-		city[4].addCity("Kashmir", 150);
-
-		// Okara (cit[5]) connections
-		city[5].addCity("Lahore", 110);
-		city[5].addCity("Faisalabad", 90);
-		city[5].addCity("Multan", 150);
-		city[5].addCity("Karachi", 1250);
-		city[5].addCity("Islamabad", 400);
-		city[5].addCity("Murree", 450);
-		city[5].addCity("Kashmir", 500);
-
-		// Murree (cit[6]) connections
-		city[6].addCity("Lahore", 370);
-		city[6].addCity("Faisalabad", 390);
-		city[6].addCity("Multan", 570);
-		city[6].addCity("Karachi", 1500);
-		city[6].addCity("Islamabad", 70);
-		city[6].addCity("Okara", 450);
-		city[6].addCity("Kashmir", 130);
-
-		// Kashmir (cit[7]) connections
-		city[7].addCity("Lahore", 520);
-		city[7].addCity("Faisalabad", 510);
-		city[7].addCity("Multan", 690);
-		city[7].addCity("Karachi", 1600);
-		city[7].addCity("Islamabad", 150);
-		city[7].addCity("Okara", 500);
-		city[7].addCity("Murree", 130);
+		city[4].addCity("Kashmir", 237);
+		city[4].addCity("Faisalabad", 185);
+		city[4].addCity("Okara", 170);
+		// Okara connections 
+		city[5].addCity("Islamabad", 170);
+		city[5].addCity("Murree", 215);
+		city[5].addCity("Multan", 146);
+		city[5].addCity("Faisalabad", 160);
+		// Murree connections 
+		city[6].addCity("Kashmir", 467);
+		city[6].addCity("Lahore", 215);
+		city[6].addCity("Karachi", 367);
+		city[6].addCity("Multan", 400);
+		// Kashmir connections 
+		city[7].addCity("Islamabad", 237);
+		city[7].addCity("Lahore", 185);
+		city[7].addCity("Karachi", 800);
+		city[7].addCity("Murree", 467);
 	}
-
 	void viewGraph() {
 		for (int i = 0; i < 8; i++) {
 			cout << "City: " << city[i].name << endl;
@@ -1263,8 +1199,8 @@ public:
 			cout << endl;
 		}
 	}
-	int dijakstra(string source,int indexOfCustomerCity,string& pathCities) {
-		int index = getCityIndex(source);
+	int* dijakstra(string source) {
+		int index = getindex(source);
 
 		//visited cities
 		bool visited[8];
@@ -1272,14 +1208,11 @@ public:
 		//array of weights
 		int weight[8];
 		int max = 999999;
-		// Parent array to store paths
-		int parent[8];
 
 		//intializing weight with max and visting false
 		for (int i = 0; i < 8; i++) {
 			weight[i] = max;
 			visited[i] = false;
-			parent[i] = -1;
 		}
 		weight[index] = 0;
 
@@ -1289,19 +1222,13 @@ public:
 		City* cityptr;
 		while (!pq.isEmpty()) {
 			int minIndex = pq.extractMin(); //dequeue and get index of next city which weight is less
-			cityptr = &city[minIndex];//get city
-			CityNode* nodeptr = cityptr->head;//get it's node head
+			cityptr = &city[minIndex]; //get that city from array of city
+			CityNode* nodeptr = cityptr->head; //get head of its linked list
 			while (nodeptr) {
-				if (!visited[nodeptr->index]) {//if it is already visited we will not visit again
-
-					//if current weight of city is less than the sum we will update
-					//weight[nodeptr->index] is current weight of the node which we accessed from head
-					//weight[minIndex] is weight of city from which we are finding path
-					//nodeptr->weight is weight of path
+				if (!visited[nodeptr->index]) {
 					if (nodeptr->weight + weight[minIndex] < weight[nodeptr->index]) {
 						weight[nodeptr->index] = nodeptr->weight + weight[minIndex];
 						pq.insert(nodeptr->index, weight[nodeptr->index]);
-						parent[nodeptr->index] = minIndex;
 					}
 				}
 				nodeptr = nodeptr->next;
@@ -1311,27 +1238,10 @@ public:
 			visited[minIndex] = true;
 		}
 
-		//// Display shortest distances
-		//cout << "Shortest distances from " << source << ":\n";
-		//for (int i = 0; i < 8; i++) {
-		//	cout << cit[i] << ": " << weight[i] << " kms" << endl;
-		//}
-
-		//// Path reconstruction
-		//cout << "\nPaths to each city:\n";
-		//for (int i = 0; i < 8; i++) {
-		//	if (i == index) continue; // Skip the source itself
-		//	cout << "Path to " << cit[i] << ": ";
-		//	printPath(parent, i);
-		//	cout << " (" << weight[i] << " kms)" << endl;
-		//}
-
-		printPath2(parent, indexOfCustomerCity,pathCities);
-
-		return weight[indexOfCustomerCity];
+		return weight;
 	}
 };
-Graph graph;
+
 
 
 
@@ -1380,22 +1290,29 @@ public:
 		getline(cin, email);
 		cout << "Enter your password: ";
 		getline(cin, password);
-		address = setCityName();
+		cout << "Enter your address: ";
+		getline(cin, address);
 	}
 	void displayDetails() const
 	{
 		if (!toDelete)
 		{
-			cout << "ID: " << sellerId << endl;
-			cout << "Email: " << email << endl;
-			cout << "Password: " << password << endl;
-			cout << "Address: " << address << endl;
-			cout << "Role: " << role << endl;
-			cout << "Product Stock: " << productStock << endl;
+		
+			Table table;
+			table.add_row({"Seller ID", "Seller Name", "Email", "Password", "Address", "Product Stock"});
+			table.add_row({to_string(sellerId), name, email, password, address, to_string(productStock)});
+            //format headings
+			for(int i = 0; i < 6; i++)
+			{
+				table[0][i].format()
+					.font_color(Color::yellow)
+					.font_align(FontAlign::center)
+					.font_style({FontStyle::bold});
+			}
 		}
 	}
 };
-vector<Seller> sellers;
+
 // stack for cart
 class CartItem
 {
@@ -1443,12 +1360,30 @@ public:
 		if (temp == NULL)
 		{
 			cout << "Cart is empty\n";
+			return;
 		}
+		Table table;
+		table.add_row({"Product Name", "Quantity" , "Seller ID" , "Product Price (Rs)"});
 		while (temp)
 		{
-			cout << "Product Name: " << temp->product->productName << " " << "Quantity: " << temp->quantity << endl;
+			//get int seller id of the seller of the product
+			//display product name, quantity and seller id
+			
+			
+
+			
+			table.add_row({temp->product->productName, to_string(temp->quantity), temp->product->sellerID, to_string(temp->product->productPrice*temp->quantity)});
 			temp = temp->next;
 		}
+		for(int i = 0; i < 4; i++)
+		{
+			table[0][i].format()
+				.font_color(Color::green)
+				.font_align(FontAlign::center)
+				.font_style({FontStyle::bold});
+		}
+		cout << table;
+		cout<<endl;
 	}
 	int calculateTotal()
 	{
@@ -1517,6 +1452,7 @@ public:
 	// push , pop functions
 	void push(string name)
 	{
+		//dont push if duplicate
 		SearchItem* ptr = head;
 		while (ptr) {
 			if (ptr->name == name) return;
@@ -1541,11 +1477,27 @@ public:
 	void display()
 	{
 		SearchItem* temp = head;
+		Table table;
+		table.add_row({"Sr No.", "Product Name"});
+		int i=0;
 		while (temp)
 		{
-			cout << temp->name << " " << endl;
+			table.add_row({to_string(++i), temp->name});
+			
+
+
+			
 			temp = temp->next;
 		}
+		for(int i = 0; i < 2; i++)
+		{
+			table[0][i].format()
+				.font_color(Color::green)
+				.font_align(FontAlign::center)
+				.font_style({FontStyle::bold});
+		}
+		cout << table;
+		cout<<endl;
 	}
 };
 
@@ -1593,21 +1545,57 @@ public:
 		getline(cin, email);
 		cout << "Enter your password: ";
 		getline(cin, password);
-		address=setCityName();
-		
+		cout << "Enter your address: ";
+		getline(cin, address);
 	}
-	void displayDetails() const
+	void displayDetails(string mode) const
 	{
-		if (!toDelete)
+		
+		if(mode=="individual"){
+			Table table;
+		if (!toDelete )
 		{
-			cout << "ID: " << customerId << endl;
-			cout << "Email: " << email << endl;
-			cout << "Password: " << password << endl;
-			cout << "Address: " << address << endl;
-			cout << "Role: " << role << endl;
-			cout << "Loyalty Points: " << loyaltyPoints << endl;
+			table.add_row({"Customer ID", to_string(customerId)});
+			table.add_row({"Customer Email", email});
+			table.add_row({"Customer Address", address});
+			table.add_row({"Loyalty Points", to_string(loyaltyPoints)});
+			table.add_row({"Role", role});
+
+			
+			
+
 		}
+		for(int i = 0; i < 5; i++)
+		{
+			table[i][0].format()
+				.font_color(Color::green)
+				.font_align(FontAlign::center)
+				.font_style({FontStyle::bold});
+		}
+		
+		cout << table;
+		//make first column green only
+
 	}
+	if(mode=="all"){
+		Table table;
+		table.add_row({"Customer ID", "Customer Email", "Customer Address", "Loyalty Points", "Role"});
+		if (!toDelete )
+		{
+			table.add_row({to_string(customerId), email, address, to_string(loyaltyPoints), role});
+		}
+		for(int i = 0; i < 5; i++)
+		{
+			table[i][0].format()
+				.font_color(Color::green)
+				.font_align(FontAlign::center)
+				.font_style({FontStyle::bold});
+		}
+		cout << table;
+	}
+
+	}
+
 };
 
 // queue for orders
@@ -1621,8 +1609,7 @@ public:
 	string customerID;
 	OrderItem* next;
 	int quantity;
-	int distanceTravelledByProduct = 0;
-	string deliveryCities;
+	vector<string> deliveryCities;
 	OrderItem(ProductNode* product, string status, string orderID, string sellerID, string customerID, int quantity,string customerCity)
 	{
 		this->product = product;
@@ -1631,34 +1618,15 @@ public:
 		this->sellerID = sellerID;
 		this->customerID = customerID;
 		this->quantity = quantity;
-		deliveryCities="";
+		deliveryCities.push_back(customerCity);
 		next = NULL;
-	}
-
-	void setAddress(string sellerID, string customerCity) {
-		//first get the city of seller
-		string sellerCity;
-		for (const auto& seller : sellers)
-		{
-			if (sellerID == seller.getUniqueID() )
-			{
-				sellerCity = seller.getAddress();
-				break;
-			}
-		}
-
-		//compute path using dijakstra
-
-		this->distanceTravelledByProduct= graph.dijakstra(sellerCity, getCityIndex(customerCity),this->deliveryCities);
-		//directly change delivery cities in dijakstra function
-
 	}
 };
 int Customer::customerIdCounter = 0;
 int Seller::sellerStaticId = 0;
 
 vector<Customer> customers;
-
+vector<Seller> sellers;
 class Order
 {
 public:
@@ -1674,20 +1642,11 @@ public:
 		if (rear == NULL)
 		{
 			front = rear = temp;
-			
+			return;
 		}
-		else {
 		rear->next = temp;
 		rear = temp;
-
-		}
-
-
-		
-		temp->setAddress(sellerID, customerCity);
 	}
-	
-
 	void dequeue()
 	{
 		if (front == NULL)
@@ -1774,45 +1733,49 @@ public:
 	{
 		if (customerID != "null")
 		{
+			Table table;
 			OrderItem* temp = front;
 			bool found = false;
+			table.add_row({"Order ID", "Product Name", "Quantity", "Status", "Seller ID" , "Total Price"});
 			while (temp)
 			{
 				if (temp->customerID == customerID)
 				{
-					cout << "Order ID: " << temp->orderID << endl;
-					cout << "Product Name: " << temp->product->productName << endl;
-					cout << "Quantity: " << temp->quantity << endl;
-					cout << "Status: " << temp->status << endl;
-					cout << "Seller ID: " << temp->sellerID << endl;
-					cout << "Path followed by order: " << temp->deliveryCities << endl;
-					cout << "Total distance covered: "<<temp->distanceTravelledByProduct<<endl;
-					cout << "====================================\n";
+					table.add_row({temp->orderID, temp->product->productName, to_string(temp->quantity), temp->status, temp->sellerID, to_string(temp->quantity*temp->product->productPrice)});
 					found = true;
 				}
 				temp = temp->next;
 			}
+
 			if (!found)
 			{
 				cout << "No orders found\n";
+				system("pause");
+				return;
 			}
+			for(int i = 0; i < 6; i++)
+			{
+				table[0][i].format()
+					.font_color(Color::green)
+					.font_align(FontAlign::center)
+					.font_style({FontStyle::bold});
+			}
+			cout << table;
+			cout<<endl;
+
+
 		}
 		else if (sellerID != "null")
 		{
 			OrderItem* temp = front;
 			bool found = false;
+			Table table;
+			table.add_row({"Order ID", "Product Name", "Quantity", "Status", "Customer ID" , "Total Price"});
 			while (temp)
 			{
 				if (temp->sellerID == sellerID)
 				{
-					cout << "Order ID: " << temp->orderID << endl;
-					cout << "Product Name: " << temp->product->productName << endl;
-					cout << "Quantity: " << temp->quantity << endl;
-					cout << "Status: " << temp->status << endl;
-					cout << "Customer ID: " << temp->customerID << endl;
-					cout << "Path followed by order: " << temp->deliveryCities << endl;
-					cout << "Total distance covered: " << temp->distanceTravelledByProduct << endl;
-					cout << "====================================\n";
+					table.add_row({temp->orderID, temp->product->productName, to_string(temp->quantity), temp->status, temp->customerID, to_string(temp->quantity*temp->product->productPrice)});
 					found = true;
 				}
 				temp = temp->next;
@@ -1820,6 +1783,15 @@ public:
 			if (!found)
 			{
 				cout << "No orders found\n";
+				system("pause");
+				return;
+			}
+			for(int i = 0; i < 6; i++)
+			{
+				table[0][i].format()
+					.font_color(Color::green)
+					.font_align(FontAlign::center)
+					.font_style({FontStyle::bold});
 			}
 		}
 		else
@@ -1833,8 +1805,6 @@ public:
 				cout << "Status: " << temp->status << endl;
 				cout << "Seller ID: " << temp->sellerID << endl;
 				cout << "Customer ID: " << temp->customerID << endl;
-				cout << "Path followed by order: " << temp->deliveryCities << endl;
-				cout << "Total distance covered: " << temp->distanceTravelledByProduct << endl;
 				cout << "====================================\n";
 				temp = temp->next;
 			}
@@ -1872,15 +1842,10 @@ public:
 		bool found = false;
 		if (front) {
 			while (temp) {
+				Table table;
+				table.add_row({"Order ID", "Product Name", "Quantity", "Status", "Customer ID"});
 				if(temp->sellerID == sellerid && temp->status=="Ordered") {
-					cout << "\n\n~~~~~~~~~~~~~~~~~~~~~~~~~";
-					cout << "\n\nOrder ID: " << temp->orderID << endl;
-					cout << "Product Name: " << temp->product->productName << endl;
-					cout << "Quantity: " << temp->quantity << endl;
-					cout << "Status: " << temp->status << endl;
-					cout << "Seller ID: " << temp->sellerID << endl;
-					cout << "Customer ID: " << temp->customerID << endl;
-					cout << "====================================\n";
+					table.add_row({temp->orderID, temp->product->productName, to_string(temp->quantity), temp->status, temp->customerID});
 					found = true;
 					cout << "Want to dispatch this ?\nPress y:  ";
 					string a;
@@ -1888,6 +1853,14 @@ public:
 					if (a == "y" || a == "Y") {
 						temp->status = "Dispatched";
 					}
+					for(int i = 0; i < 5; i++)
+					{
+						table[0][i].format()
+							.font_color(Color::green)
+							.font_align(FontAlign::center)
+							.font_style({FontStyle::bold});
+					}
+					cout << table << endl;
 				}
 				
 				temp = temp->next;
@@ -1898,6 +1871,8 @@ public:
 				
 			}
 			
+
+
 		}
 		else {
 			cout << "No orders in the dispatch";
@@ -1907,17 +1882,13 @@ public:
 		OrderItem* temp = front;
 		int total = 0;
 		bool found = false;
+		Table table;
+		table.add_row({"Order ID", "Product Name", "Quantity", "Status", "Customer ID"});
 		if (front) {
+			
 			while (temp) {
 				if (temp->sellerID == sellerid && temp->status == "Dispatched") {
-					cout << "\n\n~~~~~~~~~~~~~~~~~~~";
-					cout << "Order ID: " << temp->orderID << endl;
-					cout << "Product Name: " << temp->product->productName << endl;
-					cout << "Quantity: " << temp->quantity << endl;
-					cout << "Status: " << temp->status << endl;
-					cout << "Seller ID: " << temp->sellerID << endl;
-					cout << "Customer ID: " << temp->customerID << endl;
-					cout << "====================================\n";
+					table.add_row({temp->orderID, temp->product->productName, to_string(temp->quantity), temp->status, temp->customerID});
 					found = true;
 					int multiply= temp->quantity * temp->product->productPrice;
 					total += multiply;
@@ -1925,11 +1896,26 @@ public:
 
 				temp = temp->next;
 			}
+
+			if(found){
+				for(int i = 0; i < 5; i++)
+				{
+					table[0][i].format()
+						.font_color(Color::green)
+						.font_align(FontAlign::center)
+						.font_style({FontStyle::bold});
+				}
+				cout << table;
+				cout<<endl;
+			}
+
 			if (!found) {
 				cout << "No orders in the dispatch";
 				return;
 
 			}
+			
+
 			else {
 				cout << "\n\nTotal sales: " << total;
 			}
@@ -1939,46 +1925,9 @@ public:
 			cout << "No orders in the dispatch";
 		}
 	}
-	bool isEmpty() {
-		return front == nullptr;
-	}
-	OrderItem* getFront() {
-		return front;
-	}
-
 };
 Order orderQueue;
-void writeOrderQueueinFile() {
-	outputFile.open("orderQueue.txt", ios::trunc);
-	outputFile.close();
-	outputFile.clear();
-	outputFile.open("orderQueue.txt", ios::app);
-	if (outputFile.is_open())
-	{
-		while (!orderQueue.isEmpty()) {
-			OrderItem*  ptr=orderQueue.getFront();
 
-			outputFile << ptr->product->productId  << endl;
-			outputFile << ptr->status << endl;
-			outputFile << ptr->orderID << endl;
-			outputFile << ptr->sellerID<< endl;
-			outputFile <<  ptr->customerID<< endl;
-			outputFile <<ptr->quantity  << endl;
-			outputFile << ptr->distanceTravelledByProduct << endl;
-			outputFile << ptr->deliveryCities << endl;
-			orderQueue.dequeue();
-
-
-		}
-		
-		outputFile.close();
-		outputFile.clear();
-	}
-	else
-	{
-		cout << "Error: Could not open file for writing.\n";
-	}
-}
 
 void viewCart()
 {
@@ -2057,15 +2006,10 @@ void viewCart()
 						
 						// Decrease quantity
 						temp->product->quantity -= temp->quantity;
-						//calculate total
 						product = temp->quantity * temp->product->productPrice;
 						total += product;
-
-
 						temp->product->buyerID = customer.getUniqueID();
-
 						orderQueue.enqueue(temp->product, "Ordered", generateUniqueID('o'), temp->product->sellerID, customer.getUniqueID(), temp->quantity,customer.getAddress());
-
 						temp = temp->next;
 					}
 					customer.getCart().top = NULL;
@@ -2105,7 +2049,6 @@ void viewCart()
 						cout << "\nYour whole bill was payed with help of loyalty points";
 					}
 					cout << "\nTotal loyalty points earned: " << originalTotal * 10;
-					//for the product which is bought now
 					Sleep(2500);
 					int currentpoints= customers[loggedInCustomerId].getLoyaltyPoints();
 
@@ -2524,7 +2467,7 @@ void updateCustomer(int id)
 	{
 		if (customer.getCustomerId() == id)
 		{
-			customer.displayDetails();
+			customer.displayDetails("individual");
 			int choice, points;
 			string update;
 			cout << "1.Edit Email\n2.Edit Password\n3.Edit loyalty points\n4.Edit address\n5.Go back\n";
@@ -2562,7 +2505,7 @@ void updateCustomer(int id)
 			cout << "Updated successfully\n";
 			system("Pause");
 
-			customer.displayDetails();
+			customer.displayDetails("individual");
 			return;
 		}
 	}
@@ -2597,7 +2540,7 @@ void searchCustomer(int id)
 	{
 		if (customer.getCustomerId() == id)
 		{
-			customer.displayDetails();
+			customer.displayDetails("individual");
 			system("Pause");
 			return;
 		}
@@ -2617,7 +2560,7 @@ void deleteCustomer(int id)
 	{
 		if (customer.getCustomerId() == id)
 		{
-			customer.displayDetails();
+			customer.displayDetails("individual");
 			//confirm delete
 			string choice;
 			cout << "Are you sure you want to delete this customer? [y/n]: ";
@@ -2645,7 +2588,7 @@ void viewAllCustomers()
 	cout << "Main Menu > Admin Menu > Customer Options > View All Customers\n\n" << white;
 	for (const auto& customer : customers)
 	{
-		customer.displayDetails();
+		customer.displayDetails("all");
 		cout << endl
 			<< endl;
 	}
@@ -3155,6 +3098,8 @@ void viewCategories()
 	// Display unique categories
 	cout << "Available Categories:\n";
 	// two inner loops to check if category is duplicate
+	Table table;
+	table.add_row({ "Sr No","Category Name"  });
 	for (int i = 0; i < sizeTotalCategories; i++)
 	{
 		bool isDuplicate = false;
@@ -3168,30 +3113,43 @@ void viewCategories()
 		}
 		if (!isDuplicate)
 		{
-			cout << allCategories[i] << endl;
+			table.add_row({ to_string(i+1),allCategories[i] });
 		}
+
 	}
+	//make firs column gren
+	for(int i=0;i<table.size();i++)
+	{
+		table[i][0].format().font_color(Color::green);
+	}
+	cout<<table<<endl;
 
 	// customer will select a category
 	// then we will show products of that category
 	cout << "Enter the category name: ";
 	string str;
 	cin >> str;
+	cout<<"============================="<<endl;
 	// get all the products of that category name of all sellers
 	// show to customer
 	// search for category
 	// if any product found then show products of that category
-
+    bool foundCategory=false;
 	for (auto& seller : sellers)
 	{
 		ProductCategoryNode* category = seller.getProductCategoryTree().search(str);
 		if (category)
 		{
-			cout << "Seller Name: " << seller.getSellerId() << endl;
+			cout << "Seller ID: " << seller.getSellerId() << endl;
 			category->getProdutTree().inorder();
-			cout << "====================================\n";
+			foundCategory=true;
+			
 
 		}
+	}
+	if(!foundCategory)
+	{
+		cout<<"Category not found\n";
 	}
 	system("Pause");
 
@@ -3211,7 +3169,7 @@ void viewProfile()
 	{
 		if (customer.getCustomerId() == loggedInCustomerId)
 		{
-			customer.displayDetails();
+			customer.displayDetails("individual");
 			system("Pause");
 			return;
 			break;
@@ -3232,7 +3190,7 @@ void updateProfile()
 	{
 		if (customer.getCustomerId() == loggedInCustomerId)
 		{
-			customer.displayDetails();
+			customer.displayDetails("individual");
 			int choice, points;
 			string update;
 			cout << "1.Edit Email\n2.Edit Password\n3.Edit Address\n4.Go back\n";
@@ -3262,7 +3220,7 @@ void updateProfile()
 			}
 			cout << "Updated successfully\n";
 			cout << "Updated Profile Details:\n";
-			customer.displayDetails();
+			customer.displayDetails("individual");
 			system("Pause");
 			return;
 		}
@@ -3309,6 +3267,8 @@ void searchProduct()
 
 	// Search for the product in all sellers' categories
 	bool found = false;
+	Table table;
+	table.add_row({ "Seller ID","Category Name","Product Name","Price","Quantity" });
 	for (auto& seller : sellers)
 	{
 		ProductCategoryNode* category = seller.getProductCategoryTree().root;
@@ -3322,12 +3282,7 @@ void searchProduct()
 			ProductNode* product = current->getProdutTree().search(name);
 			if (product && product->quantity!=0)
 			{
-				cout << "Product found in Seller, Name: " << seller.getName() << " ID: " << seller.getSellerId() << endl;
-				cout << "Category: " << current->categoryName << endl;
-				cout << "Name: " << product->productName << endl;
-				cout << "Price: " << product->productPrice << endl;
-				cout << "Quantity: " << product->quantity << endl;
-				cout << "====================================\n";
+				table.add_row({ to_string(seller.getSellerId()),current->categoryName,product->productName,to_string(product->productPrice),to_string(product->quantity) });
 				found = true;
 			}
 			if (current->left)
@@ -3335,6 +3290,13 @@ void searchProduct()
 			if (current->right)
 				q.push(current->right);
 		}
+	}
+	if(found){
+		for(int i=0;i<table.size();i++)
+		{
+			table[i][0].format().font_color(Color::green).font_align(FontAlign::center).font_style({FontStyle::bold});
+		}
+		cout<<table<<endl;
 	}
 
 
@@ -3374,6 +3336,7 @@ void searchProduct()
 		if (quantity <= 0)
 		{
 			cout << "Invalid quantity\n";
+			system("Pause");
 			return;
 		}
 
@@ -3395,6 +3358,7 @@ void searchProduct()
 						if (product->quantity < quantity)
 						{
 							cout << "Not enough quantity\n";
+							system("Pause");
 							return;
 						}
 						for (auto& customer : customers)
@@ -3809,6 +3773,18 @@ void menus()
 
 int main()
 {
+
+	/*Seller s1;
+	s1.setEmail("abc@xyz.com");
+	s1.setPassword("123");
+	s1.setAddress("Lahore");
+	sellers.push_back(s1);
+	Customer c1;
+	c1.setEmail("abc@xyz.com");
+	c1.setPassword("123");
+	c1.setAddress("Lahore");
+	customers.push_back(c1);*/
+
 	outputFile.open("customer.txt", ios::app);
 	outputFile.close();
 	outputFile.clear();
@@ -3821,14 +3797,10 @@ int main()
 	outputFile.open("product.txt", ios::app);
 	outputFile.close();
 	outputFile.clear();
-	outputFile.open("orderQueue.txt", ios::trunc);
-	outputFile.close();
-	outputFile.clear();
 	readCustomersFromFile();
 	readSellersFromFile();
 	menus();
 	writeSellersToFile();
 	writeCustomersToFile();
-	writeOrderQueueinFile();
 	return 0;
 }
