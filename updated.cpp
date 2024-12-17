@@ -2,7 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
-#include <queue>
+//#include <queue>
 #include <chrono>
 //#include"utils/ConsoleUtility.h"
 #include"termcolor.hpp"
@@ -110,7 +110,7 @@ public:
 };
 
 template <typename T>
-class Queue {
+class queue {
 public:
 	struct Node {
 		T data;
@@ -121,7 +121,7 @@ public:
 	Node* rear;
 
 public:
-	Queue() : front(nullptr), rear(nullptr) {}
+	queue() : front(nullptr), rear(nullptr) {}
 
 	void push(const T& data) {
 		Node* newNode = new Node(data);
@@ -166,7 +166,7 @@ public:
 		cout << endl;
 	}
 
-	~Queue() {
+	~queue() {
 		while (front != nullptr) {
 			pop();
 		}
@@ -412,7 +412,7 @@ public:
 			q.push(root);
 			while (!q.empty())
 			{
-				ProductNode* n = q.front();
+				ProductNode* n = q.peek();
 				q.pop();
 				cout << n->productName << " " << n->productPrice << endl;
 
@@ -432,7 +432,7 @@ public:
 			q.push(root);
 			while (!q.empty())
 			{
-				ProductNode* n = q.front();
+				ProductNode* n = q.peek();
 				q.pop();
 				fout_product << category_id << endl;
 				fout_product << n->productId << endl;
@@ -574,7 +574,7 @@ public:
 			q.push(root);
 			while (!q.empty())
 			{
-				ProductNode* n = q.front();
+				ProductNode* n = q.peek();
 				q.pop();
 				if (n->quantity == 0) {
 					cout << "\nProduct is out of stock\nProduct Name: ";
@@ -678,7 +678,7 @@ public:
 			q.push(root);
 			while (!q.empty())
 			{
-				ProductCategoryNode* n = q.front();
+				ProductCategoryNode* n = q.peek();
 				q.pop();
 				if (n->unique_id == tree.root->unique_id) {
 					n->setProductTree(tree.getProductTreeFromCategoryTree());
@@ -762,7 +762,7 @@ public:
 			q.push(root);
 			while (!q.empty())
 			{
-				ProductCategoryNode* n = q.front();
+				ProductCategoryNode* n = q.peek();
 				q.pop();
 				cout << n->categoryName << " ";
 				if (n->left)
@@ -781,7 +781,7 @@ public:
 			q.push(root);
 			while (!q.empty())
 			{
-				ProductCategoryNode* n = q.front();
+				ProductCategoryNode* n = q.peek();
 				q.pop();
 				fout << id << endl;
 				category_id = n->unique_id;
@@ -804,7 +804,7 @@ public:
 			q.push(root);
 			while (!q.empty())
 			{
-				ProductCategoryNode* n = q.front();
+				ProductCategoryNode* n = q.peek();
 				q.pop();
 				string id;
 				id = n->unique_id;// talha
@@ -824,7 +824,7 @@ public:
 			q.push(root);
 			while (!q.empty())
 			{
-				ProductCategoryNode* n = q.front();
+				ProductCategoryNode* n = q.peek();
 				q.pop();
 				n->getProdutTree().writeProductsInFile(os, category_id);
 				if (n->left)
@@ -1005,7 +1005,7 @@ public:
 		cout << "\nNotifications:\n\n"; //show seller if a particular product is over
 		if (root)
 		{
-			Queue<ProductCategoryNode*> q;
+			queue<ProductCategoryNode*> q;
 			q.push(root);
 			while (!q.empty())
 			{
@@ -2187,10 +2187,37 @@ void viewCart()
 				if (customer.getCustomerId() == loggedInCustomerId)
 				{
 					double total = 0, product = 0;
+					char choice;
 					CartItem* temp = customer.getCart().top;
 					cout << endl;
 					while (temp)
 					{
+						if (temp->product->quantity == 0 ) {
+							//if the quantity of product is zero we remove product from stack
+							cout << "\nThe Product is out of stock\nWe are sorry for the in conveience\nRemoving this product from your Cart";
+							customer.getCart().deleteItem(temp->product->productName);
+							
+
+							return;
+						
+						}
+						else if(temp->product->quantity<temp->quantity){
+							//if the quantity of product is less than the quantity ordered by buyer
+							cout << "\nYour required quantity is " << temp->quantity << " and the quantity left is " << temp->product->quantity << endl;
+							cout << "Do you still  want to order the product left?[y/n]\n";
+							cin >> choice;
+							if (choice == 'y' || choice == 'Y')
+							{
+								temp->quantity = temp->product->quantity;
+							}
+							else 
+							{
+								cout << "\nDeleting order from your cart";
+								customer.getCart().deleteItem(temp->product->productName);
+								system("pause");
+							}
+
+						}
 						cout << "Order queued\n";
 
 						// Decrease quantity
@@ -2895,26 +2922,31 @@ void addProduct(ProductCategoryNode* category)
 	string name;
 	int price, quantity;
 	cout << "Enter product name: ";
+	cin.ignore();
 	getline(cin, name);
-	cin >> name;
 	if (name == "")
 	{
 		cout << "Name cannot be empty\n";
 		Sleep(1500);
 		return;
 	}
-	try {
+	
 		cout << "Enter product price: ";
 		cin >> price;
-		cout << "Enter product quantity: ";
+		if (!cin) { 
+			cout << "Wrong error";
+			cin.clear();
+			return;
+		}
+		cout << "Enter product quantity: "; cin.ignore();
 		cin >> quantity;
-	}
-	catch (const exception& e) {
-		cout << "An error occurred: " << e.what() << endl;
-
-		system("Pause");
-		return;
-	}
+		if (!cin) {
+			cout << "Wrong error";
+			cin.clear();
+			return;
+		}
+		
+	
 	// producttree of logged in seller
 	category->getProdutTree().insert(name, price, quantity, " ", sellers[loggedInSellerId].getUniqueID());
 
@@ -3115,7 +3147,7 @@ void manageProducts()
 
 		}
 		cout << "Do you want to go stay? Press Y: ";
-
+		cin.clear();
 		cin >> yt;
 
 	} while (yt == 'Y' || yt == 'y');
@@ -3479,7 +3511,7 @@ void searchProduct()
 			q.push(category);
 		while (!q.empty())
 		{
-			ProductCategoryNode* current = q.front();
+			ProductCategoryNode* current = q.peek();
 			q.pop();
 			ProductNode* product = current->getProdutTree().search(name);
 			if (product && product->quantity != 0)
@@ -3551,7 +3583,7 @@ void searchProduct()
 					q.push(seller.getProductCategoryTree().root);
 				while (!q.empty())
 				{
-					ProductCategoryNode* current = q.front();
+					ProductCategoryNode* current = q.peek();
 					q.pop();
 					ProductNode* product = current->getProdutTree().search(name);
 					if (product)
